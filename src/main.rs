@@ -14,5 +14,10 @@ fn main() {
             eprintln!("Application error: {}", e);
             process::exit(1);
         }
+    } else if arguments.action == "add" {
+        if let Err(e) = garnu_parne::add(arguments) {
+            eprintln!("Application error: {}", e);
+            process::exit(1);
+        }
     }
 }

@@ -64,3 +64,21 @@ pub fn list(arguments: Arguments) -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+pub fn add(arguments: Arguments) -> Result<(), Box<dyn Error>> {
+    let todo = arguments.data;
+    let file = arguments.file;
+    let reader = BufReader::new(file.try_clone()?);
+    let mut writer = BufWriter::new(file);
+
+    let mut line_count = 1;
+    for _ in reader.lines() {
+        line_count += 1;
+    }
+
+    write!(writer, "{}. {}", line_count, todo)?;
+
+    println!("Todo: {} is added", todo);
+
+    Ok(())
+}
