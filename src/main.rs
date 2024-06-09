@@ -24,5 +24,20 @@ fn main() {
             eprintln!("Application error: {}", e);
             process::exit(1);
         }
+    } else if arguments.action == "edit" {
+        if let Err(e) = garnu_parne::edit(arguments) {
+            eprintln!("Application error: {}", e);
+            process::exit(1);
+        }
+    } else if arguments.action == "done" {
+        if let Err(e) = garnu_parne::mark_as_done(arguments) {
+            eprintln!("Application error: {}", e);
+            process::exit(1);
+        }
+    } else if arguments.action == "undone" {
+        if let Err(e) = garnu_parne::mark_as_undone(arguments) {
+            eprintln!("Application error: {}", e);
+            process::exit(1);
+        }
     }
 }
