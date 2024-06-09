@@ -19,5 +19,10 @@ fn main() {
             eprintln!("Application error: {}", e);
             process::exit(1);
         }
+    } else if arguments.action == "delete" {
+        if let Err(e) = garnu_parne::delete(arguments) {
+            eprintln!("Application error: {}", e);
+            process::exit(1);
+        }
     }
 }

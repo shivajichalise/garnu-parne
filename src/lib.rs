@@ -1,7 +1,7 @@
 use std::{
     error::Error,
-    fs::File,
-    io::{BufRead, BufReader, BufWriter, Read, Write},
+    fs::{self, File},
+    io::{self, BufRead, BufWriter, Write},
 };
 
 pub struct Arguments {
@@ -54,13 +54,23 @@ impl Arguments {
     }
 }
 
+// The output is wrapped in a Result to allow matching on errors.
+// Returns an Iterator to the Reader of the lines of the file.
+fn read_lines(file: File) -> io::Result<io::Lines<io::BufReader<File>>> {
+    Ok(io::BufReader::new(file).lines())
+}
+
 pub fn list(arguments: Arguments) -> Result<(), Box<dyn Error>> {
-    let mut reader = BufReader::new(arguments.file);
-    let mut todos = String::new();
+    let file = arguments.file;
 
-    reader.read_to_string(&mut todos)?;
-
-    println!("{}", todos);
+    let mut line_count = 1;
+    if let Ok(lines) = read_lines(file) {
+        // Consumes the iterator, returns an (Optional) String
+        for line in lines.flatten() {
+            println!("{}. {}", line_count, line);
+            line_count += 1;
+        }
+    }
 
     Ok(())
 }
@@ -68,17 +78,37 @@ pub fn list(arguments: Arguments) -> Result<(), Box<dyn Error>> {
 pub fn add(arguments: Arguments) -> Result<(), Box<dyn Error>> {
     let todo = arguments.data;
     let file = arguments.file;
-    let reader = BufReader::new(file.try_clone()?);
     let mut writer = BufWriter::new(file);
 
-    let mut line_count = 1;
-    for _ in reader.lines() {
-        line_count += 1;
-    }
-
-    write!(writer, "{}. {}", line_count, todo)?;
+    writeln!(writer, "{}", todo)?;
 
     println!("Todo: {} is added", todo);
+
+    Ok(())
+}
+
+pub fn delete(arguments: Arguments) -> Result<(), Box<dyn Error>> {
+    let file = arguments.file;
+    let temp_file = File::options()
+        .read(true)
+        .create(true)
+        .write(true)
+        .open("todos-temp.txt")
+        .unwrap();
+
+    let mut writer = BufWriter::new(temp_file);
+
+    let mut line_count = 1;
+    if let Ok(lines) = read_lines(file) {
+        for line in lines.flatten() {
+            if line_count != arguments.data.parse::<i32>().unwrap() {
+                writeln!(writer, "{}", line)?;
+            }
+            line_count += 1;
+        }
+    }
+
+    fs::rename("todos-temp.txt", "todos.txt")?;
 
     Ok(())
 }
